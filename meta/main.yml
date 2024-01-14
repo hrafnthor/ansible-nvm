@@ -1,0 +1,21 @@
+galaxy_info:
+  author: Hrafn Thorvaldsson
+  description: An opinionated installation role for the 'Node Version Manager' nvm (https://github.com/nvm-sh/nvm)
+  company: hth
+
+  license: Apache 2.0
+
+  min_ansible_version: 2.1
+
+  platforms:
+    - name: Ubuntu
+      versions:
+      - 22.04
+      - 20.04
+
+  galaxy_tags:
+    - nvm
+    - node
+    - nodejs
+
+dependencies: []

@@ -1,0 +1,31 @@
+# This file contains tasks for installation of 'nvm'. It expects to have a input variable called 'user' 
+- name: Install 'nvm' for user
+  block:
+
+  - name: assert 'user' variable
+    ansible.builtin.assert:
+      fail_msg: "Input parameter 'user' was not found!"
+      that:
+        - user is defined
+        - user is mapping
+
+  - ansible.builtin.user:
+      name: "{{ user.name }}"
+      state: present
+    register: user_info
+    check_mode: true 
+
+  - name: Fail if user does not exist
+    ansible.builtin.fail:
+      msg: "No user {{ user.name }} found!"
+    when: user_info.changed
+
+  - name: Ensure 'nvm' installation directory
+    ansible.builtin.file:
+      path: "{{ user_info.home }}/{{ user.path | default('nvm') }}"
+      state: directory
+      modification_time: preserve
+      access_time: preserve
+      owner: "{{ user.name }}"
+      group: "{{ user.name }}"
+      mode: 0755
