@@ -1,0 +1,44 @@
+{
+    "title": "nvm",
+    "descriptions": "schema for 'nvm' installation",
+    "type": "object",
+    "properties": {
+        "users": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "path": {
+                    "$ref": "#/definitions/non-empty-string"
+                },
+                "properties": {
+                    "name": {
+                        "$ref": "#/definitions/non-empty-string"
+                    },
+                    "path": {
+                        "$ref": "#/definitions/non-empty-string"
+                    },
+                    "version": {
+                        "$ref": "#/definitions/non-empty-string"
+                    }
+                },
+                "required": [
+                    "name",
+                    "version"
+                ]
+            }
+        }
+    },
+    "definitions": {
+        "non-empty-string": {
+            "type": "string",
+            "minLength": 1
+        },
+        "non-empty-string-array": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "$ref": "#/definitions/non-empty-string"
+            }
+        }
+    }
+}

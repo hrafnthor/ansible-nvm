@@ -1,0 +1,103 @@
+# This file contains tasks for installation of 'nvm'. It expects to have a input variable called 'user' 
+- name: Install 'nvm' for user
+  block:
+
+  - name: Assert 'user' input variable
+    ansible.builtin.assert:
+      fail_msg: "Input parameter 'user' was not found!"
+      that:
+        - user is defined
+        - user is mapping
+
+  - name: Verify user exists
+    ansible.builtin.user:
+      name: "{{ user.name }}"
+      state: present
+    register: user_info
+    check_mode: true 
+
+  - name: Fail if user does not exist
+    ansible.builtin.fail:
+      msg: "No user {{ user.name }} found!"
+    when: user_info.changed
+
+  - name: Set remote 'nvm' repository git url
+    ansible.builtin.set_fact:
+      nvm_remote_git_url: "{{ nvm_source_url }}.git" 
+  
+  - name: Verify 'nvm' version exists remotely
+    ansible.builtin.command: "git ls-remote {{ nvm_remote_git_url }} {{ user.version }}"
+    register: nvm_version_info 
+    changed_when: False
+  
+  - name: Fail if 'nvm' version is not found remotely
+    ansible.builtin.fail:
+      msg: "No nvm version '{{ user.version }}' found remotely!"
+    when: nvm_version_info | length == 0
+
+  - name: Set 'nvm' installation path variable
+    ansible.builtin.set_fact:
+      nvm_installation_path: "{{ user_info.home }}/{{ user.path | default('.nvm') }}" 
+
+  - name: Ensure 'nvm' installation path
+    ansible.builtin.file:
+      path: "{{ nvm_installation_path }}"
+      state: directory
+      modification_time: preserve
+      access_time: preserve
+      owner: "{{ user.name }}"
+      group: "{{ user.name }}"
+      mode: 0755
+
+  - name: Set local 'nvm' installation git path
+    ansible.builtin.set_fact:
+      nvm_installation_git_path: "{{ nvm_installation_path }}/.git" 
+
+  - name: Check for local 'nvm' respository existence
+    ansible.builtin.stat:
+      path: "{{ nvm_installation_git_path }}"
+    register: nvm_directory_git
+
+  - name: Clone remote 'nvm' repository version
+    become_user: "{{ user.name }}"
+    ansible.builtin.git:
+      repo: "{{ nvm_remote_git_url }}"
+      dest: "{{ nvm_installation_path }}"
+      version: "{{ user.version }}"
+      depth: 1
+    when: not nvm_directory_git.stat.exists
+  
+  - name: Fetch remote 'nvm' repository version
+    become_user: "{{ user.name }}"
+    ansible.builtin.command: "git --git-dir={{ nvm_installation_git_path }} --work-tree={{ nvm_installation_path }} fetch origin tag {{ user.version }} --depth=1"
+    when: nvm_directory_git.stat.exists
+
+  - name: Checkout remote 'nvm' repository version
+    become_user: "{{ user.name }}"
+    ansible.builtin.command: "git -c advice.detachedHead=false --git-dir={{ nvm_installation_git_path }} --work-tree={{ nvm_installation_path }} checkout -f --quiet FETCH_HEAD"
+    when: nvm_directory_git.stat.exists
+
+  - name: Compress local 'nvm' repository
+    become_user: "{{ user.name }}"
+    ansible.builtin.command: "git --git-dir={{ nvm_installation_git_path }} --work-tree={{ nvm_installation_path }} reflog expire --expire=now --all"
+
+  - name: Clean local 'nvm' repository
+    become_user: "{{ user.name }}"
+    ansible.builtin.command: "git --git-dir={{ nvm_installation_git_path }} --work-tree={{ nvm_installation_path }} gc --auto --aggressive --prune=now"
+
+  - name: Copy 'nvm' environment file
+    become_user: "{{ user.name }}"
+    ansible.builtin.copy:
+      src: nvm.sh
+      dest: "{{ user_info.home }}/.env.d"
+      force: no
+      owner: "{{ user.name }}"
+      group: "{{ user.name }}"
+      mode: 0644
+  
+  - name: Set 'nvm' location in environment file
+    become_user: "{{ user.name }}"
+    ansible.builtin.lineinfile:
+      path: "{{ user_info.home }}/.env.d/nvm.sh"
+      regexp: "^export NVM_DIR="
+      line: "export NVM_DIR={{ nvm_installation_path }}"

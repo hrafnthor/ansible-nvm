@@ -1,0 +1,11 @@
+- name: assert 'nvm' variable
+  ansible.builtin.assert:
+    that:
+      - nvm is mapping
+
+- name: validate 'nvm' scheme
+  ansible.utils.validate:
+    data: "{{ nvm }}"
+    criteria: 
+      - "{{ lookup('file', './criteria/nvm_criteria.json') | from_json }}"
+    engine: ansible.utils.jsonschema
