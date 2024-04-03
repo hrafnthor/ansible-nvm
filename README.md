@@ -26,6 +26,8 @@ Role Variables
 
 `nvm` : [mapping] (required) contains the following fields:
 
+* `source_url`: [string] (optional) The http url to the nvm source repository to use. Defaults to `https://github.com/nvm-sh/nvm`
+
 * `users` : [array of objects]
 
     A list of mappings containing the following fields:
@@ -42,20 +44,18 @@ Role Variables
 
         The user home directory relative path where nvm will be installed at.
 
-`nvm_source_url` : [string] (optional) The http url to the nvm source repository to use. Defaults to `https://github.com/nvm-sh/nvm`
-
 
 Example:
 
 ```yaml
-- nvm_source_url: https://myprivatecms.com/nvm
-- nvm:
-    - users: 
-        - name: Joe
-          version: 20.10.0
-          path: ".local/nvm"
-        - name: Sally
-          version: 19.0.0
+nvm:
+  source_url: https://myprivatecms.com/nvm
+  users: 
+  - name: Joe
+    version: v0.39.0
+    path: ".local/nvm"
+  - name: Sally
+    version: v0.34.2
  ```
 
 Dependencies
@@ -97,10 +97,10 @@ Example Playbook
     - nvm:
         - users: 
             - name: Joe
-              version: 20.10.0
+              version: v0.39.0
               path: ".local/nvm"
             - name: Sally
-              version: 19.0.0
+              version: v0.34.2
   roles:
      - hth-nvm
 ```
