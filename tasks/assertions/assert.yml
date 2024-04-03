@@ -7,5 +7,5 @@
   ansible.utils.validate:
     data: "{{ nvm }}"
     criteria: 
-      - "{{ lookup('file', './criteria/nvm_criteria.json') | from_json }}"
+      - "{{ lookup('file', 'assertions/criteria/nvm_criteria.json') | from_json }}"
     engine: ansible.utils.jsonschema

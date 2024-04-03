@@ -23,7 +23,7 @@
 
   - name: Set remote 'nvm' repository git url
     ansible.builtin.set_fact:
-      nvm_remote_git_url: "{{ nvm_source_url }}.git" 
+      nvm_remote_git_url: "{{ nvm.source_url | default(nvm_source_url) }}.git" 
   
   - name: Verify 'nvm' version exists remotely
     ansible.builtin.command: "git ls-remote {{ nvm_remote_git_url }} {{ user.version }}"
