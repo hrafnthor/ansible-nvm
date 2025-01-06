@@ -44,6 +44,10 @@ Role Variables
 
         The user home directory relative path where nvm will be installed at.
 
+    * `remove` [boolean] (optional)
+
+        Indicates if NVM should be removed for this user. If set, then `version` can not be present as well.
+
 
 Example:
 
@@ -52,10 +56,13 @@ nvm:
   source_url: https://myprivatecms.com/nvm
   users: 
   - name: Joe
+    remove: true    # Remove a previous installation for user before installing a different one in a custom location
+  - name: Joe
     version: v0.39.0
-    path: ".local/nvm"
+    path: ".local/development/nvm"
   - name: Sally
     version: v0.34.2
+
  ```
 
 Dependencies

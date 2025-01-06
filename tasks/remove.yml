@@ -1,0 +1,29 @@
+- name: "NVM | Remove | Remove 'nvm' for user"
+  block:
+
+  - name: "NVM | Install | Verify user exists"
+    ansible.builtin.user:
+      name: "{{ user.name }}"
+      state: present
+    register: user_info
+    check_mode: true 
+
+  - name: "NVM | Install | Fail if user does not exist"
+    ansible.builtin.fail:
+      msg: "No user {{ user.name }} found!"
+    when: user_info.changed
+
+  - name: "NVM | Remove | Set installation path variable"
+    ansible.builtin.set_fact:
+      nvm_installation_path: "{{ user_info.home }}/{{ user.path | default('.nvm') }}" 
+
+  - name: "NVM | Remove | Remove installation folder"
+    ansible.builtin.file:
+      path: "{{ nvm_installation_path }}"
+      state: absent
+
+  - name: "NVM | Remove | Remove environment config"
+    become_user: "{{ user.name }}"
+    ansible.builtin.file:
+      path: "{{ user_info.home }}/.env.d/nvm.sh"
+      state: absent
