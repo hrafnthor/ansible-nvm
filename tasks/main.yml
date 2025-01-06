@@ -1,12 +1,28 @@
-- name: Assert necessary inputs
-  ansible.builtin.import_tasks: assertions/assert.yml
+- name: "NVM | Validate input variable"
+  ansible.utils.validate:
+    data: "{{ nvm }}"
+    criteria: "{{ lookup('file', 'assertions/criteria/nvm-criteria.json') | from_json }}"
+    engine: ansible.utils.jsonschema
   run_once: yes
   delegate_to: localhost
 
+- name: "NVM | Remove | Remove per user"
+  ansible.builtin.include_tasks: remove.yml
+  loop: "{{ nvm.users }}"
+  loop_control:
+    loop_var: user
+  when:
+    - nvm.users is defined
+    - nvm.users | length > 0
+    - user.remove is defined
+    - user.remove
 
-- name: Install 'nvm' for users
+- name: "NVM | Install | Install per user"
   ansible.builtin.include_tasks: install.yml
   loop: "{{ nvm.users }}"
   loop_control:
     loop_var: user
-  when: nvm.users | length > 0
+  when:
+    - nvm.users is defined
+    - nvm.users | length > 0
+    - user.remove is undefined or not user.remove
